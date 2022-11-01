@@ -8,7 +8,7 @@ edition = "2021"
 [dependencies]
 tokio = "1.12.2"
 async-trait = "0.1.58"
-bytes = "1.2.1"
+futures = "0.3.25"
 rusoto_core = "0.48.0"
 rusoto_dynamodb = "0.48.0"
 itertools = "0.10.5"
