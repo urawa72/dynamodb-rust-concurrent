@@ -3,6 +3,22 @@ name = "dynamodb-rust-concurrent"
 version = "0.0.1"
 edition = "2021"
 
+[lib]
+name = "dynamodb_rust_concurrent"
+path = "src/lib.rs"
+
+[[bin]]
+name = "simple_loop"
+path = "src/bin/simple_loop.rs"
+
+[[bin]]
+name = "join_all_loop"
+path = "src/bin/join_all_loop.rs"
+
+[[bin]]
+name = "buffered_stream"
+path = "src/bin/buffered_stream.rs"
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
