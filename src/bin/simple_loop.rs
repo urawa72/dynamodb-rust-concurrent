@@ -1,20 +1,14 @@
+use std::collections::HashMap;
+
 use itertools::Itertools;
 use rusoto_core::Region;
 use rusoto_dynamodb::{DynamoDbClient, WriteRequest};
-use std::collections::HashMap;
 use tokio::time::Instant;
 
 use dynamodb_rust_concurrent::common::{batch_write_item, make_values};
 
 /// tokio::task 使わずループ
-async fn simple_loop(client: &DynamoDbClient, v: Vec<i32>) -> Result<(), ()> {
-    let chunks: Vec<Vec<i32>> = v
-        .into_iter()
-        .chunks(25)
-        .into_iter()
-        .map(|v| v.into_iter().collect())
-        .collect();
-
+async fn simple_loop(client: &DynamoDbClient, chunks: Vec<Vec<i32>>) -> Result<(), ()> {
     for chunk in chunks {
         println!("start: {:?}", std::thread::current().id());
 
@@ -35,11 +29,16 @@ async fn main() {
         name: "ap-northeast-1".to_string(),
         endpoint: "http://localhost:4566".to_string(),
     });
-    let test_data = 0..1000;
+    let test_data: Vec<Vec<i32>> = (0..1000)
+        .into_iter()
+        .chunks(25)
+        .into_iter()
+        .map(|v| v.into_iter().collect())
+        .collect();
 
     let start = Instant::now();
 
-    let res = simple_loop(&client, test_data.collect_vec()).await;
+    let res = simple_loop(&client, test_data).await;
 
     println!("{:?}", res);
 

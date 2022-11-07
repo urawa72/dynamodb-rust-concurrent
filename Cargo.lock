@@ -218,7 +218,6 @@ dependencies = [
 name = "dynamodb-rust-concurrent"
 version = "0.0.1"
 dependencies = [
- "async-trait",
  "futures",
  "itertools",
  "rusoto_core",

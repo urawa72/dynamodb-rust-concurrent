@@ -9,16 +9,11 @@ use dynamodb_rust_concurrent::common::{batch_write_item, make_values};
 
 /// stream で並列
 #[allow(clippy::extra_unused_lifetimes)]
-async fn concurrent_stream<'a>(client: &'_ DynamoDbClient, v: Vec<i32>) -> Result<(), ()> {
+async fn concurrent_stream<'a>(
+    client: &'_ DynamoDbClient,
+    chunks: Vec<Vec<i32>>,
+) -> Result<(), ()> {
     use futures::{StreamExt, TryStreamExt};
-
-    let chunks = v
-        .into_iter()
-        .chunks(25)
-        .into_iter()
-        .map(|v| v.into_iter().collect())
-        .collect::<Vec<Vec<i32>>>()
-        .into_iter();
 
     let result = futures::stream::iter(chunks.into_iter().map(|c| {
         let cloned_client = client.clone();
@@ -50,11 +45,16 @@ async fn main() {
         name: "ap-northeast-1".to_string(),
         endpoint: "http://localhost:4566".to_string(),
     });
-    let test_data = 0..1000;
+    let test_data: Vec<Vec<i32>> = (0..1000)
+        .into_iter()
+        .chunks(25)
+        .into_iter()
+        .map(|v| v.into_iter().collect())
+        .collect();
 
     let start = Instant::now();
 
-    let res = concurrent_stream(&client, test_data.collect_vec()).await;
+    let res = concurrent_stream(&client, test_data).await;
 
     println!("{:?}", res);
 
