@@ -1,20 +1,14 @@
-use std::collections::HashMap;
-
-use itertools::Itertools;
-use rusoto_core::Region;
-use rusoto_dynamodb::{DynamoDbClient, WriteRequest};
+use rusoto_dynamodb::DynamoDbClient;
 use tokio::time::Instant;
 
-use dynamodb_rust_concurrent::common::{batch_write_item, make_values};
+use dynamodb_rust_concurrent::common::{batch_write_item, make_items, make_test_date, TestClient};
 
-/// tokio::task 使わずループ
+/// tokio::task 使わずループで 1 chunk ずつ処理する
 async fn simple_loop(client: &DynamoDbClient, chunks: Vec<Vec<i32>>) -> Result<(), ()> {
     for chunk in chunks {
         println!("start: {:?}", std::thread::current().id());
 
-        let values: Vec<WriteRequest> = make_values(chunk);
-        let mut items = HashMap::new();
-        items.insert("users".to_string(), values);
+        let items = make_items(chunk);
         batch_write_item(client, items).await.unwrap();
 
         println!("end: {:?}", std::thread::current().id());
@@ -25,16 +19,9 @@ async fn simple_loop(client: &DynamoDbClient, chunks: Vec<Vec<i32>>) -> Result<(
 
 #[tokio::main(flavor = "multi_thread", worker_threads = 10)]
 async fn main() {
-    let client = DynamoDbClient::new(Region::Custom {
-        name: "ap-northeast-1".to_string(),
-        endpoint: "http://localhost:4566".to_string(),
-    });
-    let test_data: Vec<Vec<i32>> = (0..1000)
-        .into_iter()
-        .chunks(25)
-        .into_iter()
-        .map(|v| v.into_iter().collect())
-        .collect();
+    let client = TestClient::default().into_inner();
+
+    let test_data = make_test_date();
 
     let start = Instant::now();
 
